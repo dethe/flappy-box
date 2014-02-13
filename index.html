@@ -31,11 +31,11 @@
 	        cursor:default;
 		}
 		.blur{
-			filter:blur(50px);
+			filter:blur(40px);
   			-o-filter:blur(20px);
   			-ms-filter:blur(20px);
   			-moz-filter:blur(20px);
-  			-webkit-filter:blur(50px);
+  			-webkit-filter:blur(40px);
 		}
 		#menu h1{
 			font-weight: 300;
@@ -79,12 +79,12 @@
 	<canvas id="c"></canvas>
 	<div id="menu">
 		<h1>FLAPPY BOX</h1>
-		<h1 id="points">5 points</h1>
+		<h1 id="points"></h1>
 		<div id="other">
 			<button onclick="gamemode = 'easy'; restart();">Easy mode</button>
 			<button onclick="gamemode = 'extreme'; restart();">Hard mode</button>
-			<!--<button onclick="gamemode = 'harder'; restart();">Harder mode</button>
-			<button onclick="gamemode = 'hardester'; restart();">Hardester mode</button>-->
+			<button onclick="alert('Sorry, this gamemode has not been created yet.')">Impossible mode</button>
+			<button onclick="alert('Sorry, this gamemode has not been created yet.')">Demonic mode</button>
 
 			<br><br><br><br><br>
 			<button onclick="">Options</button>
@@ -92,6 +92,7 @@
 		</div>
 	</div>
 	<script>
+		var iOS = /(iPad|iPhone|iPod)/g.test( navigator.userAgent );
 		(function() {
 		    var lastTime = 0;
 		    var vendors = ['webkit', 'moz'];
@@ -121,9 +122,14 @@
 		var points = 0;
 		var record = 0;
 
+		var lastdate = new Date();
+		var date = new Date();
+
+		var obstacletimer = new Date();
+
 		var frame = 0;
 
-		var live = true;
+		var live = false;
 		var gamemode = 'easy';
 		var modes = {
 			'easy':{
@@ -141,7 +147,7 @@
 
 		var bird = {
 			y:0,
-			x:window.innerWidth/3,
+			x:window.innerWidth/2,
 			ay:0,
 			size:50,
 		}
@@ -165,8 +171,8 @@
 			}
 			hideMenu();
 			particles = [];
+			obstacletimer = new Date();
 		}
-		restart();
 
 		var particles = [];
 		var particle = function(){
@@ -182,7 +188,7 @@
 		}
 		particle.prototype.update = function(){
 			this.speed+=0.5;
-			this.x -= this.speed;
+			this.x -= this.speed*((date-lastdate)/20);
 			ctx.fillStyle = this.color;
 			ctx.fillRect(this.x,canvas.height - this.y,bird.size,bird.size);
 		}
@@ -212,7 +218,7 @@
 		}
 		obstacle.prototype.update = function(){
 			if(live === true){
-				this.x -= Ostats.speed;
+				this.x -= Ostats.speed*((date-lastdate)/20);
 			}
 			if(this.direction === 'up'){
 				this.y -=Ostats.Ospeed;
@@ -241,7 +247,15 @@
 			canvas.className = '';
 		}
 		function update(){
-			window.requestAnimationFrame(update);
+			if(live === true && iOS === true){
+				console.log('iOS');
+				window.requestAnimationFrame(update);
+			}else if(iOS === false){
+				console.log('not iOS');
+				window.requestAnimationFrame(update);
+			}
+			lastdate = date;
+			date = new Date();
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
 			var colors = '0123456789abcdef';
@@ -258,7 +272,7 @@
 			ctx.fillRect(0,0,canvas.width,canvas.height);
 
 			ctx.fillStyle = "c00";
-			ctx.fillRect(0,canvas.height-20,canvas.width,20);
+			ctx.fillRect(0,canvas.height-50,canvas.width,50);
 
 			obstacles.forEach(function(i){
 				i.update();
@@ -266,6 +280,11 @@
 			/*coins.forEach(function(i){
 				i.update();
 			})*/
+			
+			if(Math.floor((date-obstacletimer)/2000) > 0 && live === true){
+				obstacletimer -= -2000;
+				new obstacle();
+			}
 
 			ctx.fillStyle = "#000";
 			Ostats.Ospeed = Math.min(points,3);
@@ -293,9 +312,9 @@
 			ctx.fillStyle = "#000";
 
 			ctx.fillRect(bird.x,canvas.height - bird.y,bird.size,bird.size);
-			bird.ay -= 0.6;
+			bird.ay -= 0.6*((date-lastdate)/20);
 			bird.y = Math.min(bird.y+bird.ay,canvas.height+100);
-			if(bird.y < 20+bird.size){bird.y = 20+bird.size;live=false};
+			if(bird.y < 50+bird.size){bird.y = 50+bird.size;live=false};
 		}
 		update();
 
@@ -309,14 +328,6 @@
 				bird.ay = 13;
 			}
 		}
-		setInterval(function(){
-			if(live === true){
-				new obstacle;
-			}
-			setTimeout(function(){
-				new coin();
-			},1000)
-		},2000);
 	</script>
 </body>
 </html>
