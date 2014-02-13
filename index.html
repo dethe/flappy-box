@@ -1,6 +1,7 @@
 <html>
 <head>
 	<title>Flappy Box</title>
+	<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=no">
 	<style>
 		html,body{
 			margin:0px;
@@ -8,6 +9,7 @@
 			overflow-y: hidden; 
 			width:100%;
 			height:100%;
+			overflow: none;
 		}
 		canvas{
 			transition:all 1s;
@@ -248,10 +250,8 @@
 		}
 		function update(){
 			if(live === true && iOS === true){
-				console.log('iOS');
 				window.requestAnimationFrame(update);
 			}else if(iOS === false){
-				console.log('not iOS');
 				window.requestAnimationFrame(update);
 			}
 			lastdate = date;
