@@ -176,16 +176,23 @@
 		}
 
 		var particles = [];
+		var hexValues = '0123456789abcdef'.split('');
+		function randHex(){
+			return hexValues[Math.floor(Math.random()*hexValues.length)]
+		}
+		function randomColor(){
+			var color = ['#'];
+			for (var i = 0; i < 6; i++){
+				color.push(randHex());
+			}
+			return color.join('');
+		}
 		var particle = function(){
 			particles.push(this);
 			this.x = bird.x;
 			this.y = bird.y;
 			this.speed = 20;
-			var colors = '0123456789abcdef';
-			this.color = '0050';
-			for(var i = 0; i < 2; i++){
-				this.color = colors[Math.floor(Math.random()*colors.split('').length)]+this.color;
-			}
+			this.color = randomColor();
 		}
 		particle.prototype.update = function(){
 			this.speed+=0.5;
@@ -257,11 +264,11 @@
 			date = new Date();
 			canvas.width = window.innerWidth;
 			canvas.height = window.innerHeight;
-			var colors = '0123456789abcdef';
-			var color = '#';
-			for(var i = 0; i < 6; i++){
-				color += colors[Math.floor(Math.random()*colors.split('').length)]
-			}
+			// var colors = '0123456789abcdef';
+			// var color = '#';
+			// for(var i = 0; i < 6; i++){
+			// 	color += colors[Math.floor(Math.random()*colors.split('').length)]
+			// }
 			color = "#fff"
 			ctx.fillStyle = color;
 			ctx.fillRect(0,0,window.width,window.height);
@@ -270,7 +277,7 @@
 			ctx.fillStyle = color;
 			ctx.fillRect(0,0,canvas.width,canvas.height);
 
-			ctx.fillStyle = "c00";
+			ctx.fillStyle = "#c00";
 			ctx.fillRect(0,canvas.height-50,canvas.width,50);
 
 			obstacles.forEach(function(i){
