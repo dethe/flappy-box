@@ -300,6 +300,11 @@
 				bird.ay = 13;
 			}
 		}
+		window.ontouchstart = function(){
+			if(live === true){
+				bird.ay = 13;
+			}
+		}
 		setInterval(function(){
 			if(live === true){
 				new obstacle;
