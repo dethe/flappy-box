@@ -1,0 +1,289 @@
+<html>
+<head>
+	<title>Flappy Box</title>
+	<style>
+		html,body{
+			margin:0px;
+			padding:0px;
+			overflow-y: hidden; 
+			width:100%;
+			height:100%;
+		}
+		canvas{
+			transition:all 1s;
+		}
+		#menu{
+			width:100%;
+			height:100%;
+			position:absolute;
+			top:0px;
+			left:0px;
+			font-family: sans-serif;
+			user-select: none; 
+			-moz-user-select: none; 
+	        -khtml-user-select: none; 
+	        -webkit-user-select: none; 
+	        -o-user-select: none; 
+	        cursor:default;
+		}
+		.blur{
+			filter:blur(50px);
+  			-o-filter:blur(20px);
+  			-ms-filter:blur(20px);
+  			-moz-filter:blur(20px);
+  			-webkit-filter:blur(50px);
+		}
+		#menu h1{
+			font-weight: 300;
+			font-size:40px;
+			text-align: center;
+		}
+		#menu #points{
+			position: absolute;
+			top:0px;
+			left:20px;
+		}
+		#menu button{
+			padding:10px 20px;
+			padding-right:200px;
+			margin-left: -1px;
+			
+			text-align: left;
+			border:none;
+			outline:none;
+			background-color:#222;
+			color:#fff;
+			font-size:30px;
+			cursor:pointer;
+			transition:all 0.1s;
+			font-family:sans-serif;
+			font-weight: 300;
+			display: block;
+			margin-bottom:5px;
+		}
+		#menu button:hover{
+			background-color:#c00;
+			padding-left:50px;
+		}
+		#menu #other{
+			position:relative;
+			padding-top: 100px
+		}
+	</style>
+</head>
+<body>
+	<canvas id="c"></canvas>
+	<div id="menu">
+		<h1>FLAPPY BOX</h1>
+		<h1 id="points">5 points</h1>
+		<div id="other">
+			<button onclick="gamemode = 'easy'; restart();">Easy mode</button>
+			<button onclick="gamemode = 'extreme'; restart();">Hard mode</button>
+			<!--<button onclick="gamemode = 'harder'; restart();">Harder mode</button>
+			<button onclick="gamemode = 'hardester'; restart();">Hardester mode</button>-->
+
+			<br><br><br><br><br>
+			<button onclick="">Options</button>
+			<ul id="record"></ul>
+		</div>
+	</div>
+	<script>
+		var canvas = document.getElementById('c');
+		var ctx = canvas.getContext('2d');
+		var points = 0;
+		var record = 0;
+
+		var frame = 0;
+
+		var live = true;
+		var gamemode = 'easy';
+		var modes = {
+			'easy':{
+
+			}
+		}
+		var Ostats = {
+			width:100,
+			height:200,
+			speed:0,
+			Ospeed:2,
+		}
+
+		var sizing = true;
+
+		var bird = {
+			y:0,
+			x:window.innerWidth/3,
+			ay:0,
+			size:50,
+		}
+		var obstacles = [];
+		var coins = [];
+
+		function restart(){
+			bird.y = window.innerHeight/4*3;
+			bird.ay = 0;
+			obstacles = [];
+			coins = [];
+			points = 0;
+			live = true;
+			if(gamemode === 'extreme'){
+				Ostats.width = 200;
+				Ostats.height = 300;
+			}else if(gamemode === 'easy'){
+				Ostats.width = 100;
+				Ostats.height = 300;
+				Ostats.speed = 3;
+			}
+			hideMenu();
+			particles = [];
+		}
+		restart();
+
+		var particles = [];
+		var particle = function(){
+			particles.push(this);
+			this.x = bird.x;
+			this.y = bird.y;
+			this.speed = 20;
+			var colors = '0123456789abcdef';
+			this.color = '0050';
+			for(var i = 0; i < 2; i++){
+				this.color = colors[Math.floor(Math.random()*colors.split('').length)]+this.color;
+			}
+		}
+		particle.prototype.update = function(){
+			this.speed+=0.5;
+			this.x -= this.speed;
+			ctx.fillStyle = this.color;
+			ctx.fillRect(this.x,canvas.height - this.y,bird.size,bird.size);
+		}
+
+		var obstacle = function(){
+			obstacles.push(this);
+			this.y = Math.round(canvas.height/4-Ostats.height+Math.random()*canvas.height/2);
+			this.x = canvas.width;
+			this.point = false;
+			this.height = Ostats.height;
+			this.width = Ostats.width;
+			this.direction = 'up';
+			if(Math.random() < 0.5){
+				this.direction = 'down';
+			}
+		}
+
+		var coin = function(){
+			coins.push(this);
+			this.y = Math.floor(Math.random()*canvas.height);
+			this.x = canvas.width;
+		}
+		coin.prototype.update = function(){
+			ctx.fillStyle = "#cc0";
+			this.x -= Ostats.speed;
+			ctx.fillRect(this.x, this.y, 30, 30);
+		}
+		obstacle.prototype.update = function(){
+			if(live === true){
+				this.x -= Ostats.speed;
+			}
+			if(this.direction === 'up'){
+				this.y -=Ostats.Ospeed;
+				if(this.y < 50){this.direction = 'down'}
+			}
+			if(this.direction === 'down'){
+				this.y +=Ostats.Ospeed;
+				if(this.y > canvas.height-70-Ostats.height){this.direction = 'up'}
+			}
+			if((canvas.height - bird.y < this.y || canvas.height - bird.y+bird.size > this.y+this.height) && this.x < bird.x+bird.size && this.x+this.width > bird.x){
+				live = false;
+			}
+			ctx.fillRect(this.x,0,this.width,this.y);
+			ctx.fillRect(this.x,this.y+this.height,this.width,canvas.height);
+			if(this.point === false && this.x+this.width < bird.x){
+				points+=1;
+				this.point = true;
+			}
+		}
+		function showMenu(){
+			document.getElementById('other').style.display = 'inline-block';
+			canvas.className = 'blur';
+		}
+		function hideMenu(){
+			document.getElementById('other').style.display = 'none';
+			canvas.className = '';
+		}
+		function update(){
+			window.requestAnimationFrame(update);
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+			var colors = '0123456789abcdef';
+			var color = '#';
+			for(var i = 0; i < 6; i++){
+				color += colors[Math.floor(Math.random()*colors.split('').length)]
+			}
+			color = "#fff"
+			ctx.fillStyle = color;
+			ctx.fillRect(0,0,window.width,window.height);
+			frame+=1;
+
+			ctx.fillStyle = color;
+			ctx.fillRect(0,0,canvas.width,canvas.height);
+
+			ctx.fillStyle = "c00";
+			ctx.fillRect(0,canvas.height-20,canvas.width,20);
+
+			obstacles.forEach(function(i){
+				i.update();
+			})
+			/*coins.forEach(function(i){
+				i.update();
+			})*/
+
+			ctx.fillStyle = "#000";
+			Ostats.Ospeed = Math.min(points,3);
+
+
+			ctx.font = '30px sans-serif';
+			if(live === true){
+				//if(sizing){bird.size+=5;}else{bird.size-=5};
+				//if(bird.size > 50){sizing = false};
+				//if(bird.size < 10){sizing = true};
+				document.getElementById('points').textContent = "Points: "+points
+				if(frame % 1 === 0){
+					new particle();
+				}
+			}else{
+				if(points > record){record = points};
+				showMenu();
+			}
+			for(var i = 0; i < particles.length; i++){
+				particles[i].update();
+				if(i.x < -50){
+					particles.splice(i,1)
+				}
+			}
+			ctx.fillStyle = "#000";
+
+			ctx.fillRect(bird.x,canvas.height - bird.y,bird.size,bird.size);
+			bird.ay -= 0.6;
+			bird.y = Math.min(bird.y+bird.ay,canvas.height+100);
+			if(bird.y < 20+bird.size){bird.y = 20+bird.size;live=false};
+		}
+		update();
+
+		window.onmousedown = function(){
+			if(live === true){
+				bird.ay = 13;
+			}
+		}
+		setInterval(function(){
+			if(live === true){
+				new obstacle;
+			}
+			setTimeout(function(){
+				new coin();
+			},1000)
+		},2000);
+	</script>
+</body>
+</html>
